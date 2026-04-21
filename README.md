@@ -120,7 +120,6 @@ TaskManagementSystem.sln
 │   │   ├── Enums/                         Priority, TaskFilter, TaskSort
 │   │   ├── Exceptions/                    Custom domain exceptions
 │   │   ├── Interfaces/                    ITaskRepository, ITaskService
-│   │   ├── Services/                      TaskService (business logic)
 │   │   └── ViewModels/                    All view models and DTOs
 │   │
 │   ├── TaskManagementSystem.Infrastructure/   Data layer
@@ -128,6 +127,7 @@ TaskManagementSystem.sln
 │   │   ├── Migrations/                    EF Core migrations
 │   │   ├── Repositories/                  TaskRepository
 │   │   └── Seed/                          DbSeeder (admin user)
+|   |   ├── Services/                      TaskService (business logic)
 │   │
 │   └── TaskManagementSystem.Web/          Presentation layer
 │       ├── Controllers/                   AccountController, TaskController
