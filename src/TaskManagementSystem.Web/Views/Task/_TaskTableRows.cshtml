@@ -16,14 +16,16 @@ else
         <tr class="@(task.IsOverdue ? "table-danger" : "") @(task.IsCompleted ? "text-muted" : "")">
             <td class="align-middle">@task.Id</td>
             <td class="align-middle">
-                @if (task.IsCompleted)
-                {
-                    <del>@task.Title</del>
-                }
-                else
-                {
-                    @task.Title
-                }
+                <span class="task-title">
+                    @if (task.IsCompleted)
+                    {
+                        <del>@task.Title</del>
+                    }
+                    else
+                    {
+                        @task.Title
+                    }
+                </span>
                 @if (task.IsOverdue)
                 {
                     <span class="badge bg-danger ms-1">Overdue</span>

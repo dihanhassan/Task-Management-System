@@ -73,6 +73,8 @@
                     "X-Requested-With": "XMLHttpRequest",
                     "RequestVerificationToken": getAntiForgeryToken()
                 },
+                contentType: "application/x-www-form-urlencoded",
+                data: { __RequestVerificationToken: getAntiForgeryToken() },
                 success: function (response) {
                     if (response.success) {
                         handleToggleSuccess($btn, response.isCompleted);
@@ -87,18 +89,22 @@
 
     function handleToggleSuccess($btn, isCompleted) {
         var $row = $btn.closest("tr");
+        var $titleSpan = $row.find(".task-title");
+        var titleText = $titleSpan.text().trim();
 
         if (isCompleted) {
             $btn.removeClass("btn-outline-success").addClass("btn-secondary");
             $btn.find("i").removeClass("bi-check-lg").addClass("bi-arrow-counterclockwise");
             $btn.attr("title", "Mark as Pending");
             $row.addClass("text-muted");
+            $titleSpan.html("<del>" + titleText + "</del>");
             showSuccessToast("Task marked as complete!");
         } else {
             $btn.removeClass("btn-secondary").addClass("btn-outline-success");
             $btn.find("i").removeClass("bi-arrow-counterclockwise").addClass("bi-check-lg");
             $btn.attr("title", "Mark as Complete");
             $row.removeClass("text-muted");
+            $titleSpan.html(titleText);
             showSuccessToast("Task marked as pending.");
         }
     }
