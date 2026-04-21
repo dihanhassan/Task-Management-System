@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/TaskManagementSystem.Core/TaskManagementSystem.Core.csproj" />
+    <Project Path="src/TaskManagementSystem.Infrastructure/TaskManagementSystem.Infrastructure.csproj" />
+    <Project Path="src/TaskManagementSystem.Web/TaskManagementSystem.Web.csproj" />
+  </Folder>
+</Solution>
