@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using TaskManagementSystem.Core.Interfaces;
-using TaskManagementSystem.Core.Services;
+using TaskManagementSystem.Infrastructure.Services;
 using TaskManagementSystem.Infrastructure.Data;
 using TaskManagementSystem.Infrastructure.Repositories;
 using TaskManagementSystem.Infrastructure.Seed;

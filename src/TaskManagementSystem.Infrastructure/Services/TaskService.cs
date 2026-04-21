@@ -7,7 +7,7 @@ using TaskManagementSystem.Core.Interfaces;
 using TaskManagementSystem.Core.ViewModels;
 using X.PagedList.Extensions;
 
-namespace TaskManagementSystem.Core.Services;
+namespace TaskManagementSystem.Infrastructure.Services;
 
 public class TaskService : ITaskService
 {
