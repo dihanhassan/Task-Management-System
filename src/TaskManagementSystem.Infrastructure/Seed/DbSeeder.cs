@@ -14,11 +14,11 @@ public static class DbSeeder
         var loggerFactory = scope.ServiceProvider.GetRequiredService<ILoggerFactory>();
         var logger = loggerFactory.CreateLogger(nameof(DbSeeder));
 
-        var email = configuration["Seed:AdminEmail"] ?? "admin@taskmanager.com";
-        var password = configuration["Seed:AdminPassword"] ?? "Admin@123";
-        var userName = configuration["Seed:AdminUserName"] ?? "admin";
+        var email = configuration["Seed:AdminEmail"]!;
+        var password = configuration["Seed:AdminPassword"]!;
+        var userName = configuration["Seed:AdminUserName"]!;
 
-        var existing = await userManager.FindByEmailAsync(email);
+        var existing = await userManager.FindByEmailAsync(email!);
         if (existing is not null) return;
 
         var user = CreateAdminUser(userName, email);
