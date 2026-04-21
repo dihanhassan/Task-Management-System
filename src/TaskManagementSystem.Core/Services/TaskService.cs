@@ -23,63 +23,129 @@ public class TaskService : ITaskService
     public async Task<TaskListViewModel> GetTaskListAsync(
         string userId, string searchTerm, TaskFilter filter, TaskSort sort, int page, int pageSize)
     {
-        var tasks = await _repository.GetByUserAsync(userId, searchTerm, filter, sort);
-        var counts = await _repository.GetCountsByUserAsync(userId);
-
-        var rows = tasks.Select(MapToRowViewModel);
-        var pagedRows = rows.ToPagedList(page, pageSize);
-
-        return new TaskListViewModel
+        try
         {
-            Tasks = pagedRows,
-            SearchTerm = searchTerm,
-            ActiveFilter = filter,
-            ActiveSort = sort,
-            Dashboard = BuildDashboard(counts)
-        };
+            var tasks = await _repository.GetByUserAsync(userId, searchTerm, filter, sort);
+            var counts = await _repository.GetCountsByUserAsync(userId);
+
+            var rows = tasks.Select(MapToRowViewModel);
+            var pagedRows = rows.ToPagedList(page, pageSize);
+
+            return new TaskListViewModel
+            {
+                Tasks = pagedRows,
+                SearchTerm = searchTerm,
+                ActiveFilter = filter,
+                ActiveSort = sort,
+                Dashboard = BuildDashboard(counts)
+            };
+        }
+        catch (TaskNotFoundException) { throw; }
+        catch (UnauthorizedTaskAccessException) { throw; }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to load task list. UserId={UserId}", userId);
+            throw;
+        }
     }
 
     public async Task<TaskEditViewModel> GetForEditAsync(int taskId, string userId)
     {
-        var task = await GetVerifiedTaskAsync(taskId, userId);
-        return MapToEditViewModel(task);
+        try
+        {
+            var task = await GetVerifiedTaskAsync(taskId, userId);
+            return MapToEditViewModel(task);
+        }
+        catch (TaskNotFoundException) { throw; }
+        catch (UnauthorizedTaskAccessException) { throw; }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get task for edit. TaskId={TaskId}, UserId={UserId}", taskId, userId);
+            throw;
+        }
     }
 
     public async Task CreateAsync(TaskCreateViewModel model, string userId)
     {
-        var task = MapToEntity(model, userId);
-        await _repository.CreateAsync(task);
-        _logger.LogInformation("Task created. UserId={UserId}, Title={Title}", userId, model.Title);
+        try
+        {
+            var task = MapToEntity(model, userId);
+            await _repository.CreateAsync(task);
+            _logger.LogInformation("Task created. UserId={UserId}, Title={Title}", userId, model.Title);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create task. UserId={UserId}, Title={Title}", userId, model.Title);
+            throw;
+        }
     }
 
     public async Task UpdateAsync(TaskEditViewModel model, string userId)
     {
-        var task = await GetVerifiedTaskAsync(model.Id, userId);
-        ApplyEditToEntity(task, model);
-        await _repository.UpdateAsync(task);
-        _logger.LogInformation("Task updated. TaskId={TaskId}, UserId={UserId}", model.Id, userId);
+        try
+        {
+            var task = await GetVerifiedTaskAsync(model.Id, userId);
+            ApplyEditToEntity(task, model);
+            await _repository.UpdateAsync(task);
+            _logger.LogInformation("Task updated. TaskId={TaskId}, UserId={UserId}", model.Id, userId);
+        }
+        catch (TaskNotFoundException) { throw; }
+        catch (UnauthorizedTaskAccessException) { throw; }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update task. TaskId={TaskId}, UserId={UserId}", model.Id, userId);
+            throw;
+        }
     }
 
     public async Task DeleteAsync(int taskId, string userId)
     {
-        var task = await GetVerifiedTaskAsync(taskId, userId);
-        await _repository.DeleteAsync(task);
-        _logger.LogInformation("Task deleted. TaskId={TaskId}, UserId={UserId}", taskId, userId);
+        try
+        {
+            var task = await GetVerifiedTaskAsync(taskId, userId);
+            await _repository.DeleteAsync(task);
+            _logger.LogInformation("Task deleted. TaskId={TaskId}, UserId={UserId}", taskId, userId);
+        }
+        catch (TaskNotFoundException) { throw; }
+        catch (UnauthorizedTaskAccessException) { throw; }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete task. TaskId={TaskId}, UserId={UserId}", taskId, userId);
+            throw;
+        }
     }
 
     public async Task<bool> ToggleStatusAsync(int taskId, string userId)
     {
-        await GetVerifiedTaskAsync(taskId, userId);
-        var isCompleted = await _repository.ToggleStatusAsync(taskId);
-        _logger.LogInformation("Task toggled. TaskId={TaskId}, IsCompleted={IsCompleted}", taskId, isCompleted);
-        return isCompleted;
+        try
+        {
+            await GetVerifiedTaskAsync(taskId, userId);
+            var isCompleted = await _repository.ToggleStatusAsync(taskId);
+            _logger.LogInformation("Task toggled. TaskId={TaskId}, IsCompleted={IsCompleted}", taskId, isCompleted);
+            return isCompleted;
+        }
+        catch (TaskNotFoundException) { throw; }
+        catch (UnauthorizedTaskAccessException) { throw; }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to toggle task. TaskId={TaskId}, UserId={UserId}", taskId, userId);
+            throw;
+        }
     }
 
     public async Task<byte[]> ExportToCsvAsync(string userId)
     {
-        var tasks = await _repository.GetByUserAsync(userId, string.Empty, TaskFilter.All, TaskSort.DueDateAsc);
-        var csv = BuildCsv(tasks);
-        return Encoding.UTF8.GetBytes(csv);
+        try
+        {
+            var tasks = await _repository.GetByUserAsync(userId, string.Empty, TaskFilter.All, TaskSort.DueDateAsc);
+            var csv = BuildCsv(tasks);
+            return Encoding.UTF8.GetBytes(csv);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to export CSV. UserId={UserId}", userId);
+            throw;
+        }
     }
 
     private async Task<TaskItem> GetVerifiedTaskAsync(int taskId, string userId)
