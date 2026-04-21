@@ -12,7 +12,7 @@ public class ApplicationDbContext : IdentityDbContext<IdentityUser>
     {
     }
 
-    public DbSet<TaskItem> Tasks { get; set; }
+    public DbSet<TaskItem> Tasks { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

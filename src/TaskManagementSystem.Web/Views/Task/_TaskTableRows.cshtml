@@ -1,0 +1,76 @@
+@model X.PagedList.IPagedList<TaskRowViewModel>
+
+@if (!Model.Any())
+{
+    <tr>
+        <td colspan="6" class="text-center text-muted py-5">
+            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+            No tasks found.
+        </td>
+    </tr>
+}
+else
+{
+    foreach (var task in Model)
+    {
+        <tr class="@(task.IsOverdue ? "table-danger" : "") @(task.IsCompleted ? "text-muted" : "")">
+            <td class="align-middle">@task.Id</td>
+            <td class="align-middle">
+                @if (task.IsCompleted)
+                {
+                    <del>@task.Title</del>
+                }
+                else
+                {
+                    @task.Title
+                }
+                @if (task.IsOverdue)
+                {
+                    <span class="badge bg-danger ms-1">Overdue</span>
+                }
+            </td>
+            <td class="align-middle">
+                @(task.DueDate.HasValue ? task.DueDate.Value.ToString("MMM dd, yyyy") : "-")
+            </td>
+            <td class="align-middle">
+                @{
+                    var (badgeClass, icon) = task.Priority switch
+                    {
+                        Priority.High   => ("bg-danger", "bi-arrow-up-circle-fill"),
+                        Priority.Medium => ("bg-warning text-dark", "bi-dash-circle-fill"),
+                        _               => ("bg-success", "bi-arrow-down-circle-fill")
+                    };
+                }
+                <span class="badge @badgeClass">
+                    <i class="bi @icon me-1"></i>@task.Priority
+                </span>
+            </td>
+            <td class="align-middle text-center">
+                <button class="btn btn-sm @(task.IsCompleted ? "btn-secondary" : "btn-outline-success") toggle-status-btn"
+                        data-task-id="@task.Id"
+                        title="@(task.IsCompleted ? "Mark as Pending" : "Mark as Complete")">
+                    <i class="bi @(task.IsCompleted ? "bi-arrow-counterclockwise" : "bi-check-lg")"></i>
+                </button>
+            </td>
+            <td class="align-middle">
+                <div class="d-flex gap-1">
+                    <a asp-action="Edit" asp-route-id="@task.Id"
+                       class="btn btn-sm btn-outline-primary" title="Edit">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <button class="btn btn-sm btn-outline-danger delete-btn"
+                            data-task-id="@task.Id"
+                            data-task-title="@task.Title"
+                            title="Delete">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                    <form id="delete-form-@task.Id"
+                          asp-action="Delete" asp-route-id="@task.Id"
+                          method="post" class="d-none">
+                        @Html.AntiForgeryToken()
+                    </form>
+                </div>
+            </td>
+        </tr>
+    }
+}
