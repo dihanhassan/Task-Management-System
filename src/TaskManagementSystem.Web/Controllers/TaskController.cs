@@ -8,20 +8,13 @@ using TaskManagementSystem.Core.ViewModels;
 namespace TaskManagementSystem.Web.Controllers;
 
 [Authorize]
-public class TaskController : Controller
+public class TaskController(ITaskService taskService, IConfiguration configuration, ILogger<TaskController> logger) : Controller
 {
-    private readonly ITaskService _taskService;
-    private readonly IConfiguration _configuration;
-    private readonly ILogger<TaskController> _logger;
+    private readonly ITaskService _taskService = taskService;
+    private readonly IConfiguration _configuration = configuration;
+    private readonly ILogger<TaskController> _logger = logger;
 
     private const int DefaultPageSize = 10;
-
-    public TaskController(ITaskService taskService, IConfiguration configuration, ILogger<TaskController> logger)
-    {
-        _taskService = taskService;
-        _configuration = configuration;
-        _logger = logger;
-    }
 
     [HttpGet]
     public async Task<IActionResult> Index(
