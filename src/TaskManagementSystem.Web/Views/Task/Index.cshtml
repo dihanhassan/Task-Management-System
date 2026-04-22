@@ -3,127 +3,133 @@
 @using X.PagedList
 @{
     ViewData["Title"] = "My Tasks";
+    var hour = DateTime.Now.Hour;
+    var greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+    var name = User.Identity?.Name ?? "there";
 }
 
 @Html.AntiForgeryToken()
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3 fw-bold mb-0"><i class="bi bi-list-task me-2 text-primary"></i>My Tasks</h1>
-    <a asp-action="Create" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i>New Task
-    </a>
+<div class="tm-page-header">
+    <div>
+        <h1 class="tm-page-title">@greeting, @name</h1>
+        <p class="tm-page-subtitle">Here's an overview of your tasks for today.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="ExportCsv" class="tm-btn tm-btn-ghost">
+            <i class="bi bi-download"></i> Export CSV
+        </a>
+        <a asp-action="Create" class="tm-btn tm-btn-primary">
+            <i class="bi bi-plus-lg"></i> New Task
+        </a>
+    </div>
 </div>
 
 <div class="row g-3 mb-4">
-    <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm text-center h-100">
-            <div class="card-body">
-                <div class="fs-2 fw-bold text-primary">@Model.Dashboard.TotalTasks</div>
-                <div class="text-muted small">Total Tasks</div>
+    <div class="col-6 col-lg-3">
+        <div class="tm-stat">
+            <span class="tm-stat-icon is-primary"><i class="bi bi-collection"></i></span>
+            <div>
+                <div class="tm-stat-value">@Model.Dashboard.TotalTasks</div>
+                <div class="tm-stat-label">Total tasks</div>
             </div>
         </div>
     </div>
-    <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm text-center h-100">
-            <div class="card-body">
-                <div class="fs-2 fw-bold text-success">@Model.Dashboard.CompletedTasks</div>
-                <div class="text-muted small">Completed</div>
+    <div class="col-6 col-lg-3">
+        <div class="tm-stat">
+            <span class="tm-stat-icon is-success"><i class="bi bi-check2-circle"></i></span>
+            <div>
+                <div class="tm-stat-value">@Model.Dashboard.CompletedTasks</div>
+                <div class="tm-stat-label">Completed</div>
             </div>
         </div>
     </div>
-    <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm text-center h-100">
-            <div class="card-body">
-                <div class="fs-2 fw-bold text-warning">@Model.Dashboard.PendingTasks</div>
-                <div class="text-muted small">Pending</div>
+    <div class="col-6 col-lg-3">
+        <div class="tm-stat">
+            <span class="tm-stat-icon is-warning"><i class="bi bi-hourglass-split"></i></span>
+            <div>
+                <div class="tm-stat-value">@Model.Dashboard.PendingTasks</div>
+                <div class="tm-stat-label">Pending</div>
             </div>
         </div>
     </div>
-    <div class="col-6 col-md-3">
-        <div class="card border-0 shadow-sm text-center h-100">
-            <div class="card-body">
-                <div class="fs-2 fw-bold text-danger">@Model.Dashboard.OverdueTasks</div>
-                <div class="text-muted small">Overdue</div>
+    <div class="col-6 col-lg-3">
+        <div class="tm-stat">
+            <span class="tm-stat-icon is-danger"><i class="bi bi-exclamation-octagon"></i></span>
+            <div>
+                <div class="tm-stat-value">@Model.Dashboard.OverdueTasks</div>
+                <div class="tm-stat-label">Overdue</div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="card border-0 shadow-sm">
-    <div class="card-body">
-        <form asp-action="Index" method="get" class="row g-2 mb-3" id="filterForm">
-            <div class="col-md-5">
-                <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-search"></i></span>
-                    <input type="text" id="searchInput" name="searchTerm"
-                           value="@Model.SearchTerm" class="form-control"
-                           placeholder="Search tasks..." autocomplete="off" />
-                </div>
-            </div>
-            <div class="col-md-3">
-                <select name="filter" id="filterSelect" class="form-select">
-                    @foreach (TaskFilter f in Enum.GetValues(typeof(TaskFilter)))
-                    {
-                        <option value="@((int)f)" selected="@(Model.ActiveFilter == f)">@f</option>
-                    }
-                </select>
-            </div>
-            <div class="col-md-3">
-                <select name="sort" id="sortSelect" class="form-select">
-                    <option value="@((int)TaskSort.DueDateAsc)"  selected="@(Model.ActiveSort == TaskSort.DueDateAsc)">Due Date (Asc)</option>
-                    <option value="@((int)TaskSort.DueDateDesc)" selected="@(Model.ActiveSort == TaskSort.DueDateDesc)">Due Date (Desc)</option>
-                    <option value="@((int)TaskSort.PriorityAsc)"  selected="@(Model.ActiveSort == TaskSort.PriorityAsc)">Priority (Low-High)</option>
-                    <option value="@((int)TaskSort.PriorityDesc)" selected="@(Model.ActiveSort == TaskSort.PriorityDesc)">Priority (High-Low)</option>
-                </select>
-            </div>
-            <div class="col-md-1">
-                <button type="submit" class="btn btn-outline-secondary w-100" title="Apply filters">
-                    <i class="bi bi-funnel"></i>
-                </button>
-            </div>
-        </form>
+<form asp-action="Index" method="get" id="filterForm" class="tm-filter-bar mb-3">
+    <div class="tm-search @(string.IsNullOrEmpty(Model.SearchTerm) ? "" : "has-value")">
+        <i class="bi bi-search"></i>
+        <input type="text" id="searchInput" name="searchTerm"
+               value="@Model.SearchTerm" placeholder="Search by title or description..." autocomplete="off" />
+        <button type="button" class="tm-search-clear" id="searchClear" title="Clear">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
 
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th style="width:60px">#</th>
-                        <th>Title</th>
-                        <th style="width:140px">Due Date</th>
-                        <th style="width:110px">Priority</th>
-                        <th style="width:90px" class="text-center">Status</th>
-                        <th style="width:110px">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="taskTableBody">
-                    @await Html.PartialAsync("_TaskTableRows", Model.Tasks)
-                </tbody>
-            </table>
-        </div>
-
-        @if (Model.Tasks.PageCount > 1)
+    <div class="tm-segmented" role="tablist" aria-label="Filter by status">
+        @foreach (TaskFilter f in Enum.GetValues(typeof(TaskFilter)))
         {
-            <div class="d-flex justify-content-between align-items-center mt-3">
-                <small class="text-muted">
-                    Showing @((Model.Tasks.PageNumber - 1) * Model.Tasks.PageSize + 1)
-                    - @Math.Min(Model.Tasks.PageNumber * Model.Tasks.PageSize, Model.Tasks.TotalItemCount)
-                    of @Model.Tasks.TotalItemCount tasks
-                </small>
-                <div>
-                    @Html.PagedListPager(Model.Tasks, page => Url.Action("Index", new
-                    {
-                        page,
-                        searchTerm = Model.SearchTerm,
-                        filter = (int)Model.ActiveFilter,
-                        sort = (int)Model.ActiveSort
-                    }), new PagedListRenderOptions
-                    {
-                        LiElementClasses = new[] { "page-item" },
-                        PageClasses = new[] { "page-link" },
-                        UlElementClasses = new[] { "pagination pagination-sm mb-0" }
-                    })
-                </div>
-            </div>
+            var id = $"filter_{(int)f}";
+            <input type="radio" name="filter" id="@id" value="@((int)f)"
+                   checked="@(Model.ActiveFilter == f)" />
+            <label for="@id">@f</label>
         }
     </div>
+
+    <select name="sort" id="sortSelect" class="tm-select ms-auto">
+        <option value="@((int)TaskSort.DueDateAsc)"  selected="@(Model.ActiveSort == TaskSort.DueDateAsc)">Sort: Due date (earliest)</option>
+        <option value="@((int)TaskSort.DueDateDesc)" selected="@(Model.ActiveSort == TaskSort.DueDateDesc)">Sort: Due date (latest)</option>
+        <option value="@((int)TaskSort.PriorityAsc)"  selected="@(Model.ActiveSort == TaskSort.PriorityAsc)">Sort: Priority (low → high)</option>
+        <option value="@((int)TaskSort.PriorityDesc)" selected="@(Model.ActiveSort == TaskSort.PriorityDesc)">Sort: Priority (high → low)</option>
+    </select>
+</form>
+
+<div class="tm-table-wrap">
+    <div class="table-responsive">
+        <table class="tm-table">
+            <thead>
+                <tr>
+                    <th style="width:48px"></th>
+                    <th>Task</th>
+                    <th style="width:160px">Due date</th>
+                    <th style="width:120px">Priority</th>
+                    <th style="width:120px; text-align:right; padding-right:1.5rem">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="taskTableBody">
+                @await Html.PartialAsync("_TaskTableRows", Model.Tasks)
+            </tbody>
+        </table>
+    </div>
+
+    @if (Model.Tasks.PageCount > 1)
+    {
+        <div class="tm-page-foot">
+            <small class="text-muted">
+                Showing <strong>@((Model.Tasks.PageNumber - 1) * Model.Tasks.PageSize + 1)</strong>
+                – <strong>@Math.Min(Model.Tasks.PageNumber * Model.Tasks.PageSize, Model.Tasks.TotalItemCount)</strong>
+                of <strong>@Model.Tasks.TotalItemCount</strong> tasks
+            </small>
+            @Html.PagedListPager(Model.Tasks, page => Url.Action("Index", new
+            {
+                page,
+                searchTerm = Model.SearchTerm,
+                filter = (int)Model.ActiveFilter,
+                sort = (int)Model.ActiveSort
+            }), new PagedListRenderOptions
+            {
+                LiElementClasses = new[] { "page-item" },
+                PageClasses = new[] { "page-link" },
+                UlElementClasses = new[] { "pagination pagination-sm mb-0" }
+            })
+        </div>
+    }
 </div>

@@ -2,7 +2,7 @@
     "use strict";
 
     var searchTimer = null;
-    var SEARCH_DELAY_MS = 400;
+    var SEARCH_DELAY_MS = 350;
 
     function getAntiForgeryToken() {
         return $('input[name="__RequestVerificationToken"]').first().val();
@@ -15,7 +15,7 @@
             icon: "success",
             title: message,
             showConfirmButton: false,
-            timer: 2500,
+            timer: 2200,
             timerProgressBar: true
         });
     }
@@ -27,22 +27,29 @@
             icon: "error",
             title: message,
             showConfirmButton: false,
-            timer: 3000,
+            timer: 2800,
             timerProgressBar: true
         });
     }
 
     function initSearch() {
+        var $wrap = $(".tm-search");
         var $input = $("#searchInput");
+        var $clear = $("#searchClear");
         if (!$input.length) return;
 
         $input.on("keyup input", function () {
             clearTimeout(searchTimer);
             var term = $(this).val();
+            $wrap.toggleClass("has-value", term.length > 0);
 
             searchTimer = setTimeout(function () {
                 performSearch(term);
             }, SEARCH_DELAY_MS);
+        });
+
+        $clear.on("click", function () {
+            $input.val("").trigger("input").focus();
         });
     }
 
@@ -93,19 +100,15 @@
         var titleText = $titleSpan.text().trim();
 
         if (isCompleted) {
-            $btn.removeClass("btn-outline-success").addClass("btn-secondary");
-            $btn.find("i").removeClass("bi-check-lg").addClass("bi-arrow-counterclockwise");
-            $btn.attr("title", "Mark as Pending");
-            $row.addClass("text-muted");
+            $btn.addClass("is-checked").attr("title", "Mark as pending");
+            $row.addClass("is-completed");
             $titleSpan.html("<del>" + titleText + "</del>");
-            showSuccessToast("Task marked as complete!");
+            showSuccessToast("Task marked as complete");
         } else {
-            $btn.removeClass("btn-secondary").addClass("btn-outline-success");
-            $btn.find("i").removeClass("bi-arrow-counterclockwise").addClass("bi-check-lg");
-            $btn.attr("title", "Mark as Complete");
-            $row.removeClass("text-muted");
+            $btn.removeClass("is-checked").attr("title", "Mark as complete");
+            $row.removeClass("is-completed");
             $titleSpan.html(titleText);
-            showSuccessToast("Task marked as pending.");
+            showSuccessToast("Task marked as pending");
         }
     }
 
@@ -115,14 +118,16 @@
             var taskTitle = $(this).data("task-title");
 
             Swal.fire({
-                title: "Delete Task?",
+                title: "Delete this task?",
                 text: "\"" + taskTitle + "\" will be permanently removed.",
                 icon: "warning",
                 showCancelButton: true,
-                confirmButtonColor: "#dc3545",
-                cancelButtonColor: "#6c757d",
-                confirmButtonText: "Yes, delete it",
-                cancelButtonText: "Cancel"
+                confirmButtonColor: "#dc2626",
+                cancelButtonColor: "#6b7280",
+                confirmButtonText: "Yes, delete",
+                cancelButtonText: "Cancel",
+                buttonsStyling: true,
+                reverseButtons: true
             }).then(function (result) {
                 if (result.isConfirmed) {
                     $("#delete-form-" + taskId).submit();
@@ -132,8 +137,20 @@
     }
 
     function initFilterAutoSubmit() {
-        $("#filterSelect, #sortSelect").on("change", function () {
+        $(document).on("change", "#filterForm input[name='filter'], #sortSelect", function () {
             $("#filterForm").submit();
+        });
+    }
+
+    function initPasswordToggle() {
+        $(document).on("click", ".tm-password-toggle", function () {
+            var $btn = $(this);
+            var $input = $btn.closest(".tm-input-group").find("input");
+            var isPwd = $input.attr("type") === "password";
+            $input.attr("type", isPwd ? "text" : "password");
+            $btn.find("i")
+                .toggleClass("bi-eye", !isPwd)
+                .toggleClass("bi-eye-slash", isPwd);
         });
     }
 
@@ -142,6 +159,7 @@
         initToggleStatus();
         initDeleteConfirm();
         initFilterAutoSubmit();
+        initPasswordToggle();
     });
 
 }(jQuery));

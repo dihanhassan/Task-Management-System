@@ -1,34 +1,42 @@
+@{
+    var userName = User.Identity?.Name ?? "";
+    var initial = string.IsNullOrEmpty(userName) ? "U" : userName.Substring(0, 1);
+}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Task Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body class="d-flex flex-column min-vh-100">
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+    <nav class="tm-navbar navbar navbar-expand-lg sticky-top">
         <div class="container">
-            <a class="navbar-brand fw-bold" asp-controller="Task" asp-action="Index">
-                <i class="bi bi-check2-square me-2"></i>Task Manager
+            <a class="navbar-brand" asp-controller="Task" asp-action="Index">
+                <span class="brand-mark"><i class="bi bi-check2-square"></i></span>
+                <span>Task Manager</span>
             </a>
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
                     data-bs-target="#navbarContent" aria-controls="navbarContent"
                     aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
+                <i class="bi bi-list fs-4"></i>
             </button>
 
             <div class="collapse navbar-collapse" id="navbarContent">
                 @if (User.Identity?.IsAuthenticated == true)
                 {
-                    <ul class="navbar-nav me-auto">
+                    <ul class="navbar-nav me-auto ms-lg-3">
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Task" asp-action="Index">
-                                <i class="bi bi-list-task me-1"></i>My Tasks
+                                <i class="bi bi-list-check me-1"></i>My Tasks
                             </a>
                         </li>
                         <li class="nav-item">
@@ -38,54 +46,51 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Task" asp-action="ExportCsv">
-                                <i class="bi bi-download me-1"></i>Export CSV
+                                <i class="bi bi-download me-1"></i>Export
                             </a>
                         </li>
                     </ul>
 
-                    <ul class="navbar-nav ms-auto align-items-center">
-                        <li class="nav-item me-3">
-                            <span class="navbar-text text-white-50">
-                                <i class="bi bi-person-circle me-1"></i>@User.Identity.Name
-                            </span>
-                        </li>
-                        <li class="nav-item">
-                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-outline-light btn-sm">
-                                    <i class="bi bi-box-arrow-right me-1"></i>Logout
-                                </button>
-                            </form>
-                        </li>
-                    </ul>
+                    <div class="d-flex align-items-center gap-2 mt-3 mt-lg-0">
+                        <span class="tm-user-pill">
+                            <span class="tm-avatar">@initial</span>
+                            <span>@userName</span>
+                        </span>
+                        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline m-0">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="tm-logout-btn">
+                                <i class="bi bi-box-arrow-right me-1"></i>Logout
+                            </button>
+                        </form>
+                    </div>
                 }
             </div>
         </div>
     </nav>
 
-    <main class="container my-4 flex-grow-1">
+    <main class="container my-4 flex-grow-1 tm-fade-in">
         @if (TempData["SuccessMessage"] != null)
         {
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle me-2"></i>@TempData["SuccessMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <div class="tm-flash is-success mb-3">
+                <i class="bi bi-check-circle-fill"></i>
+                <span class="flex-grow-1">@TempData["SuccessMessage"]</span>
             </div>
         }
 
         @if (TempData["ErrorMessage"] != null)
         {
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <div class="tm-flash is-danger mb-3">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span class="flex-grow-1">@TempData["ErrorMessage"]</span>
             </div>
         }
 
         @RenderBody()
     </main>
 
-    <footer class="bg-light border-top py-3 mt-auto">
-        <div class="container text-center text-muted small">
-            &copy; @DateTime.Now.Year Task Management System
+    <footer class="tm-footer mt-auto">
+        <div class="container">
+            &copy; @DateTime.Now.Year Task Manager &middot; Built with ASP.NET Core
         </div>
     </footer>
 

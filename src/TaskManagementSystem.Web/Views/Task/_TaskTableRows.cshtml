@@ -3,9 +3,12 @@
 @if (!Model.Any())
 {
     <tr>
-        <td colspan="6" class="text-center text-muted py-5">
-            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-            No tasks found.
+        <td colspan="5">
+            <div class="tm-empty">
+                <div class="tm-empty-icon"><i class="bi bi-inbox"></i></div>
+                <div class="tm-empty-title">No tasks found</div>
+                <div>Try adjusting your filters or create your first task to get started.</div>
+            </div>
         </td>
     </tr>
 }
@@ -13,9 +16,22 @@ else
 {
     foreach (var task in Model)
     {
-        <tr class="@(task.IsOverdue ? "table-danger" : "") @(task.IsCompleted ? "text-muted" : "")">
-            <td class="align-middle">@task.Id</td>
-            <td class="align-middle">
+        var (badgeClass, priorityIcon) = task.Priority switch
+        {
+            Priority.High   => ("is-high",   "bi-arrow-up"),
+            Priority.Medium => ("is-medium", "bi-dash"),
+            _               => ("is-low",    "bi-arrow-down")
+        };
+
+        <tr class="@(task.IsCompleted ? "is-completed" : "")">
+            <td>
+                <button class="tm-toggle @(task.IsCompleted ? "is-checked" : "") toggle-status-btn"
+                        data-task-id="@task.Id"
+                        title="@(task.IsCompleted ? "Mark as pending" : "Mark as complete")">
+                    <i class="bi bi-check-lg"></i>
+                </button>
+            </td>
+            <td>
                 <span class="task-title">
                     @if (task.IsCompleted)
                     {
@@ -26,44 +42,40 @@ else
                         @task.Title
                     }
                 </span>
-                @if (task.IsOverdue)
+                @if (task.IsOverdue && !task.IsCompleted)
                 {
-                    <span class="badge bg-danger ms-1">Overdue</span>
+                    <span class="tm-badge is-overdue ms-2">
+                        <i class="bi bi-clock-history"></i> Overdue
+                    </span>
                 }
             </td>
-            <td class="align-middle">
-                @(task.DueDate.HasValue ? task.DueDate.Value.ToString("MMM dd, yyyy") : "-")
-            </td>
-            <td class="align-middle">
-                @{
-                    var (badgeClass, icon) = task.Priority switch
-                    {
-                        Priority.High   => ("bg-danger", "bi-arrow-up-circle-fill"),
-                        Priority.Medium => ("bg-warning text-dark", "bi-dash-circle-fill"),
-                        _               => ("bg-success", "bi-arrow-down-circle-fill")
-                    };
+            <td>
+                @if (task.DueDate.HasValue)
+                {
+                    <span class="@(task.IsOverdue && !task.IsCompleted ? "text-danger fw-semibold" : "")">
+                        <i class="bi bi-calendar3 me-1 text-muted"></i>@task.DueDate.Value.ToString("MMM dd, yyyy")
+                    </span>
                 }
-                <span class="badge @badgeClass">
-                    <i class="bi @icon me-1"></i>@task.Priority
+                else
+                {
+                    <span class="text-muted">No due date</span>
+                }
+            </td>
+            <td>
+                <span class="tm-badge @badgeClass">
+                    <i class="bi @priorityIcon"></i>@task.Priority
                 </span>
             </td>
-            <td class="align-middle text-center">
-                <button class="btn btn-sm @(task.IsCompleted ? "btn-secondary" : "btn-outline-success") toggle-status-btn"
-                        data-task-id="@task.Id"
-                        title="@(task.IsCompleted ? "Mark as Pending" : "Mark as Complete")">
-                    <i class="bi @(task.IsCompleted ? "bi-arrow-counterclockwise" : "bi-check-lg")"></i>
-                </button>
-            </td>
-            <td class="align-middle">
-                <div class="d-flex gap-1">
+            <td style="text-align:right; padding-right:1.5rem">
+                <div class="d-inline-flex gap-1">
                     <a asp-action="Edit" asp-route-id="@task.Id"
-                       class="btn btn-sm btn-outline-primary" title="Edit">
+                       class="tm-btn-icon is-edit" title="Edit task">
                         <i class="bi bi-pencil"></i>
                     </a>
-                    <button class="btn btn-sm btn-outline-danger delete-btn"
+                    <button class="tm-btn-icon is-danger delete-btn"
                             data-task-id="@task.Id"
                             data-task-title="@task.Title"
-                            title="Delete">
+                            title="Delete task">
                         <i class="bi bi-trash"></i>
                     </button>
                     <form id="delete-form-@task.Id"
