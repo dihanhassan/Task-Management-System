@@ -115,19 +115,20 @@ Or open it in SQL Server Management Studio and execute it.
 ```
 TaskManagementSystem.sln
 ├── src/
-│   ├── TaskManagementSystem.Core/         Domain layer
+│   ├── TaskManagementSystem.Core/         Domain layer (pure contracts)
 │   │   ├── Entities/                      TaskItem entity
 │   │   ├── Enums/                         Priority, TaskFilter, TaskSort
 │   │   ├── Exceptions/                    Custom domain exceptions
 │   │   ├── Interfaces/                    ITaskRepository, ITaskService
-│   │   ├── Services/                      TaskService (business logic)
 │   │   └── ViewModels/                    All view models and DTOs
 │   │
-│   ├── TaskManagementSystem.Infrastructure/   Data layer
+│   ├── TaskManagementSystem.Infrastructure/   Data + business logic layer
 │   │   ├── Data/                          ApplicationDbContext
+│   │   ├── Helpers/                       TaskMapper, CsvExportHelper
 │   │   ├── Migrations/                    EF Core migrations
 │   │   ├── Repositories/                  TaskRepository
-│   │   └── Seed/                          DbSeeder (admin user)
+│   │   ├── Seed/                          DbSeeder (admin user)
+│   │   └── Services/                      TaskService (business logic)
 │   │
 │   └── TaskManagementSystem.Web/          Presentation layer
 │       ├── Controllers/                   AccountController, TaskController

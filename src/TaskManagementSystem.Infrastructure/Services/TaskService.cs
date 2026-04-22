@@ -1,10 +1,10 @@
-using System.Text;
 using Microsoft.Extensions.Logging;
 using TaskManagementSystem.Core.Entities;
 using TaskManagementSystem.Core.Enums;
 using TaskManagementSystem.Core.Exceptions;
 using TaskManagementSystem.Core.Interfaces;
 using TaskManagementSystem.Core.ViewModels;
+using TaskManagementSystem.Infrastructure.Helpers;
 using X.PagedList.Extensions;
 
 namespace TaskManagementSystem.Infrastructure.Services;
@@ -28,8 +28,7 @@ public class TaskService : ITaskService
             var tasks = await _repository.GetByUserAsync(userId, searchTerm, filter, sort);
             var counts = await _repository.GetCountsByUserAsync(userId);
 
-            var rows = tasks.Select(MapToRowViewModel);
-            var pagedRows = rows.ToPagedList(page, pageSize);
+            var pagedRows = tasks.Select(TaskMapper.ToRowViewModel).ToPagedList(page, pageSize);
 
             return new TaskListViewModel
             {
@@ -37,7 +36,7 @@ public class TaskService : ITaskService
                 SearchTerm = searchTerm,
                 ActiveFilter = filter,
                 ActiveSort = sort,
-                Dashboard = BuildDashboard(counts)
+                Dashboard = TaskMapper.ToDashboardViewModel(counts)
             };
         }
         catch (TaskNotFoundException) { throw; }
@@ -54,7 +53,7 @@ public class TaskService : ITaskService
         try
         {
             var task = await GetVerifiedTaskAsync(taskId, userId);
-            return MapToEditViewModel(task);
+            return TaskMapper.ToEditViewModel(task);
         }
         catch (TaskNotFoundException) { throw; }
         catch (UnauthorizedTaskAccessException) { throw; }
@@ -69,7 +68,7 @@ public class TaskService : ITaskService
     {
         try
         {
-            var task = MapToEntity(model, userId);
+            var task = TaskMapper.ToEntity(model, userId);
             await _repository.CreateAsync(task);
             _logger.LogInformation("Task created. UserId={UserId}, Title={Title}", userId, model.Title);
         }
@@ -85,7 +84,7 @@ public class TaskService : ITaskService
         try
         {
             var task = await GetVerifiedTaskAsync(model.Id, userId);
-            ApplyEditToEntity(task, model);
+            TaskMapper.ApplyEdit(task, model);
             await _repository.UpdateAsync(task);
             _logger.LogInformation("Task updated. TaskId={TaskId}, UserId={UserId}", model.Id, userId);
         }
@@ -138,8 +137,7 @@ public class TaskService : ITaskService
         try
         {
             var tasks = await _repository.GetByUserAsync(userId, string.Empty, TaskFilter.All, TaskSort.DueDateAsc);
-            var csv = BuildCsv(tasks);
-            return Encoding.UTF8.GetBytes(csv);
+            return CsvExportHelper.GenerateCsv(tasks);
         }
         catch (Exception ex)
         {
@@ -157,95 +155,5 @@ public class TaskService : ITaskService
             throw new UnauthorizedTaskAccessException(taskId);
 
         return task;
-    }
-
-    private static DashboardViewModel BuildDashboard(
-        (int Total, int Completed, int Pending, int Overdue) counts)
-    {
-        return new DashboardViewModel
-        {
-            TotalTasks = counts.Total,
-            CompletedTasks = counts.Completed,
-            PendingTasks = counts.Pending,
-            OverdueTasks = counts.Overdue
-        };
-    }
-
-    private static string BuildCsv(IEnumerable<TaskItem> tasks)
-    {
-        var sb = new StringBuilder();
-        sb.AppendLine("Id,Title,Description,DueDate,Priority,IsCompleted,CreatedAt");
-
-        foreach (var task in tasks)
-        {
-            sb.AppendLine(FormatCsvRow(task));
-        }
-
-        return sb.ToString();
-    }
-
-    private static string FormatCsvRow(TaskItem task)
-    {
-        return string.Join(",",
-            task.Id,
-            $"\"{EscapeCsv(task.Title)}\"",
-            $"\"{EscapeCsv(task.Description ?? string.Empty)}\"",
-            task.DueDate?.ToString("yyyy-MM-dd") ?? string.Empty,
-            task.Priority.ToString(),
-            task.IsCompleted,
-            task.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss")
-        );
-    }
-
-    private static string EscapeCsv(string value) =>
-        value.Replace("\"", "\"\"");
-
-    private static TaskRowViewModel MapToRowViewModel(TaskItem task)
-    {
-        return new TaskRowViewModel
-        {
-            Id = task.Id,
-            Title = task.Title,
-            DueDate = task.DueDate,
-            Priority = task.Priority,
-            IsCompleted = task.IsCompleted,
-            IsOverdue = task.IsOverdue
-        };
-    }
-
-    private static TaskEditViewModel MapToEditViewModel(TaskItem task)
-    {
-        return new TaskEditViewModel
-        {
-            Id = task.Id,
-            Title = task.Title,
-            Description = task.Description,
-            DueDate = task.DueDate,
-            Priority = task.Priority,
-            IsCompleted = task.IsCompleted
-        };
-    }
-
-    private static TaskItem MapToEntity(TaskCreateViewModel model, string userId)
-    {
-        return new TaskItem
-        {
-            Title = model.Title,
-            Description = model.Description,
-            DueDate = model.DueDate,
-            Priority = model.Priority,
-            IsCompleted = model.IsCompleted,
-            CreatedAt = DateTime.UtcNow,
-            UserId = userId
-        };
-    }
-
-    private static void ApplyEditToEntity(TaskItem task, TaskEditViewModel model)
-    {
-        task.Title = model.Title;
-        task.Description = model.Description;
-        task.DueDate = model.DueDate;
-        task.Priority = model.Priority;
-        task.IsCompleted = model.IsCompleted;
     }
 }
