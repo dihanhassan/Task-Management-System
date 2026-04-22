@@ -20,6 +20,25 @@ A production-grade task management web application built with ASP.NET Core MVC (
 
 ---
 
+## Screenshots
+
+### Sign In
+A split-screen welcome page introduces the app on the left and keeps the sign-in form clean and focused on the right.
+
+![Sign In page](docs/screenshots/login.png)
+
+### Dashboard
+Live counts at the top, a powerful filter bar in the middle, and a clean task table with one-click status toggle.
+
+![Dashboard / My Tasks](docs/screenshots/dashboard.png)
+
+### Create Task
+A simple, distraction-free form with helper text and a sticky action bar.
+
+![Create Task page](docs/screenshots/create-task.png)
+
+---
+
 ## Tech Stack
 
 | Layer | Technology |
