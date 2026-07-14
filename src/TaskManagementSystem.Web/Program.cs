@@ -61,6 +61,22 @@ app.MapControllerRoute(
     pattern: "{controller=Account}/{action=Login}/{id?}")
     .WithStaticAssets();
 
+// Apply migrations automatically
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    try
+    {
+        await db.Database.MigrateAsync();
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Database migration failed");
+        throw;
+    }
+}
+
 await DbSeeder.SeedAsync(app.Services, app.Configuration);
 
 app.Run();

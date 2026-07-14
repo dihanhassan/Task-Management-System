@@ -14,9 +14,6 @@ RUN dotnet restore "TaskManagementSystem.slnx"
 # Copy entire source
 COPY . .
 
-# Build application
-RUN dotnet build "TaskManagementSystem.slnx" -c Release -o /app/build
-
 # Publish stage
 FROM build AS publish
 RUN dotnet publish "src/TaskManagementSystem.Web/TaskManagementSystem.Web.csproj" -c Release -o /app/publish /p:UseAppHost=false
