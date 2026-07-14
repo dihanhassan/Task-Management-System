@@ -47,6 +47,14 @@ git push origin main
    - PostgreSQL database
    - Web service (ASP.NET Core app)
 
+**After Blueprint Creation:**
+7. Go to your Web Service → Environment
+8. Add this environment variable:
+   - Key: `ConnectionStrings__DefaultConnection`
+   - Value: Copy the connection string from the PostgreSQL database details page
+   - Format: `Host=<host>;Port=5432;Database=taskmanagement_db;Username=<user>;Password=<password>`
+9. Save and redeploy
+
 **Option B: Manual Setup**
 
 #### Create PostgreSQL Database:
