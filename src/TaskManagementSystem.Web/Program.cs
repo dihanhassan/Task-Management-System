@@ -6,6 +6,7 @@ using TaskManagementSystem.Infrastructure.Data;
 using TaskManagementSystem.Infrastructure.Repositories;
 using TaskManagementSystem.Infrastructure.Seed;
 using TaskManagementSystem.Web.Middleware;
+using System.Linq;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,8 +16,21 @@ builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 
 builder.Services.AddControllersWithViews();
 
+// Get connection string from environment variable first, then fall back to config
+var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+    ?? builder.Configuration.GetConnectionString("DefaultConnection");
+
+if (string.IsNullOrEmpty(connectionString))
+{
+    throw new InvalidOperationException("No database connection string found in environment variables or appsettings.json");
+}
+
+// Log connection string (hide password)
+var connLog = connectionString.Replace(connectionString.Split("Password=").Last().Split(";").First(), "***");
+Console.WriteLine($"Database Connection String: {connLog}");
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connectionString));
 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 {
