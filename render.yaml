@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: task-management-system
+    env: docker
+    region: oregon
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+    envVarRefs:
+      - key: ConnectionStrings__DefaultConnection
+        value: ${DATABASE_URL}
+databases:
+  - name: task-management-db
+    databaseName: taskmanagement_db
+    user: taskmanager
+    plan: free
