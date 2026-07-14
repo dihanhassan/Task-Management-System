@@ -61,22 +61,47 @@ app.MapControllerRoute(
     pattern: "{controller=Account}/{action=Login}/{id?}")
     .WithStaticAssets();
 
-// Apply migrations automatically
+// Apply migrations automatically with retry logic
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    try
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+    int retries = 3;
+    while (retries > 0)
     {
-        await db.Database.MigrateAsync();
-    }
-    catch (Exception ex)
-    {
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Database migration failed");
-        throw;
+        try
+        {
+            logger.LogInformation("Attempting database migration (attempts remaining: {Retries})", retries);
+            await db.Database.MigrateAsync();
+            logger.LogInformation("Database migration completed successfully");
+            break;
+        }
+        catch (Exception ex)
+        {
+            retries--;
+            if (retries == 0)
+            {
+                logger.LogWarning(ex, "Database migration failed after 3 attempts. App will continue but database may not be initialized.");
+                // Don't throw - allow app to start anyway
+            }
+            else
+            {
+                logger.LogWarning(ex, "Database migration failed, retrying in 5 seconds...");
+                await Task.Delay(5000);
+            }
+        }
     }
 }
 
-await DbSeeder.SeedAsync(app.Services, app.Configuration);
+try
+{
+    await DbSeeder.SeedAsync(app.Services, app.Configuration);
+}
+catch (Exception ex)
+{
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogWarning(ex, "Database seeding failed");
+}
 
 app.Run();
