@@ -3,19 +3,19 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 # Copy solution and project files
-COPY ["TaskManagementSystem.sln", "."]
+COPY ["TaskManagementSystem.slnx", "."]
 COPY ["src/TaskManagementSystem.Web/TaskManagementSystem.Web.csproj", "src/TaskManagementSystem.Web/"]
 COPY ["src/TaskManagementSystem.Core/TaskManagementSystem.Core.csproj", "src/TaskManagementSystem.Core/"]
 COPY ["src/TaskManagementSystem.Infrastructure/TaskManagementSystem.Infrastructure.csproj", "src/TaskManagementSystem.Infrastructure/"]
 
 # Restore dependencies
-RUN dotnet restore "TaskManagementSystem.sln"
+RUN dotnet restore "TaskManagementSystem.slnx"
 
 # Copy entire source
 COPY . .
 
 # Build application
-RUN dotnet build "TaskManagementSystem.sln" -c Release -o /app/build
+RUN dotnet build "TaskManagementSystem.slnx" -c Release -o /app/build
 
 # Publish stage
 FROM build AS publish
